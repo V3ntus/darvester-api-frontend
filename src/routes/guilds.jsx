@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,26 +10,26 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableSortLabel from '@mui/material/TableSortLabel';
-import { Paper, TableContainer, Toolbar, Tooltip, Typography, IconButton } from '@mui/material';
+import { Paper, TableContainer, Toolbar, Tooltip, Typography, IconButton, Divider } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 
 const columns = [
-    {id: 'id', numeric: false, disablePadding: true, label: 'ID'},
+    {id: 'id', numeric: true, disablePadding: true, label: 'ID'},
     {id: 'name', numeric: false, disablePadding: true, label: 'Name'},
     {id: 'icon', numeric: false, disablePadding: true, label: 'Icon'},
     {id: 'owner', numeric: false, disablePadding: true, label: 'Owner'},
-    {id: 'member_count', numeric: false, disablePadding: true, label: 'Members'},
+    {id: 'member_count', numeric: true, disablePadding: true, label: 'Members'},
     {id: 'description', numeric: false, disablePadding: true, label: 'Description'},
     {id: 'features', numeric: false, disablePadding: true, label: 'Features'},
-    {id: 'premium_tier', numeric: false, disablePadding: true, label: 'Premium Tier'},
-    {id: 'first_seen', numeric: false, disablePadding: true, label: 'First Seen'},
+    {id: 'premium_tier', numeric: true, disablePadding: true, label: 'Premium Tier'},
+    {id: 'first_seen', numeric: true, disablePadding: true, label: 'First Seen'},
 ]
 
-const rows = [
-    {id: 1, name: 'Guild 1', icon: 'https://i.imgur.com/XyqQZ.png', owner: 'Owner 1', member_count: 1, description: 'Description 1', features: 'Features 1', premium_tier: 'Premium Tier 1', first_seen: 'First Seen 1'},
-    {id: 2, name: 'Guild 2', icon: 'https://i.imgur.com/XyqQZ.png', owner: 'Owner 2', member_count: 2, description: 'Description 2', features: 'Features 2', premium_tier: 'Premium Tier 2', first_seen: 'First Seen 2'},
-]
+// const rows = [
+//     {id: 1, name: 'Guild 1', icon: 'https://i.imgur.com/XyqQZ.png', owner: 'Owner 1', member_count: 1, description: 'Description 1', features: 'Features 1', premium_tier: 'Premium Tier 1', first_seen: 'First Seen 1'},
+//     {id: 2, name: 'Guild 2', icon: 'https://i.imgur.com/XyqQZ.png', owner: 'Owner 2', member_count: 2, description: 'Description 2', features: 'Features 2', premium_tier: 'Premium Tier 2', first_seen: 'First Seen 2'},
+// ]
 
 function descComp(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
@@ -56,7 +57,7 @@ function EnhancedTableHead(props) {
                 {columns.map((column) => (
                     <TableCell
                         key={column.id}
-                        align={column.numeric ? 'left' : 'right'}
+                        align={column.numeric ? 'right' : 'left'}
                         padding={column.disablePadding ? 'normal' : 'none'}
                         sortDirection={orderBy === column.id ? order : false}
                         style={{ fontWeight: 'bold' }}
@@ -95,21 +96,32 @@ const EnhancedTableToolbar = (props) => {
             }}
         >
             <Typography
-                sx={{ flex: '1 1 100%'}}
+                sx={{ flex: '1 1 100%', padding: '0.8rem', fontWeight: 'light' }}
                 color="inherit"
-                variant="h6"
+                variant="h3"
                 component="div"
                 id="tableTitle"
             >
                 Guilds
             </Typography>
-            <Tooltip title="Filter list">
+            {/* <Tooltip title="Filter list">
                 <IconButton>
                     <FilterListIcon />
                 </IconButton>
-            </Tooltip>
+            </Tooltip> */}
         </Toolbar>
     );
+}
+
+function getSmallerIcon(url) {
+    try {
+        url = new URL(url);
+        url.searchParams.set('size', '64');
+        url.search = url.searchParams.toString();
+        return url.toString();
+    } catch {
+        return "#";
+    }
 }
 
 export default function Guilds() {
@@ -117,6 +129,12 @@ export default function Guilds() {
     const [orderBy, setOrderBy] = React.useState('name');
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
+
+    const [error, setError] = React.useState(null);
+    const [isLoaded, setIsLoaded] = React.useState(false);
+    const [rows, setRows] = React.useState([]);
+
+    const [retry, setRetry] = React.useState(false);
 
     const handlerRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -133,7 +151,51 @@ export default function Guilds() {
         setPage(0);
     };
 
+    useEffect(() => {
+        fetch(`http://localhost:8080/guilds?limit=${rowsPerPage}&offset=${rowsPerPage * page}`)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    setIsLoaded(true);
+                    for (let i = 0; i < result['guilds'].length; i++) {
+                        result['guilds'][i]['first_seen'] = new Date(result['guilds'][i].first_seen * 1000).toLocaleDateString();
+                        result['guilds'][i]['features'] = result['guilds'][i].features.join(', ');
+                        result['guilds'][i]['owner'] = result['guilds'][i].owner.name + ` (${result['guilds'][i].owner.id})`;
+                    }
+                    setRows(result['guilds']);
+                    setRetry(false);
+                },
+                (error) => {
+                    setIsLoaded(true);
+                    setError(error);
+                }
+            )
+    }, [page, rowsPerPage, retry]);
+
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+    if (error) {
+        return (
+            <Box sx={{ width: '80%', margin: "auto" }}>
+                <Paper sx={{ width: '100%', mb: 2, padding: '36px' }}>
+                    <Typography variant="h5" component="h3">
+                        Error: {error.message}
+                    </Typography>
+                    <Button variant="contained" color="primary" onClick={() => {setRetry(true)}} sx={{ margin: '12px' }}>Retry</Button>
+                </Paper>
+            </Box>
+        )
+    } else if (!isLoaded) {
+        return (
+            <Box sx={{ width: '80%', margin: "auto" }}>
+                <Paper sx={{ width: '100%', mb: 2, padding: '36px' }}>
+                    <Typography variant="h5" component="h3">
+                        Loading...
+                    </Typography>
+                </Paper>
+            </Box>
+        )
+    }
 
     return (
         <Box sx={{ width: '80%', margin: "auto" }}>
@@ -167,18 +229,35 @@ export default function Guilds() {
                                                 id={labelId}
                                                 scope="row"
                                                 padding="none"
-                                                align="right"
+                                                align="left"
+                                                sx={{ paddingLeft: '16px' }}
                                             >
                                                 {row.id}
                                             </TableCell>
-                                            <TableCell align="right">{row.name}</TableCell>
-                                            <TableCell align="right">
-                                                <Button href={row.icon}>Link</Button>
+                                            <TableCell align="left">{row.name}</TableCell>
+                                            <TableCell align="center">
+                                                <Tooltip title={<><img src={getSmallerIcon(row.icon)} alt="Server icon"/></>} placement="top" arrow>
+                                                    <Button onClick={() => window.open(row.icon, '_blank', 'noopener, noreferrer')} disabled={(row.icon !== "None") ? false : true}>Link</Button>
+                                                </Tooltip>
                                             </TableCell>
-                                            <TableCell align="right">{row.owner}</TableCell>
-                                            <TableCell align="right">{row.member_count}</TableCell>
-                                            <TableCell align="right">{row.description}</TableCell>
-                                            <TableCell align="right">{row.features}</TableCell>
+                                            <TableCell align="left">{row.owner}</TableCell>
+                                            <TableCell align="right">{row.member_count.toLocaleString()}</TableCell>
+                                            <Tooltip title={row.description} placement="top" arrow>
+                                                <TableCell align="left" sx={{
+                                                    overflow: 'hidden',
+                                                    whiteSpace: 'nowrap',
+                                                    textOverflow: 'ellipsis',
+                                                    maxWidth: '200px',
+                                                }}>{row.description}</TableCell>
+                                            </Tooltip>
+                                            <Tooltip title={row.features} placement="top" arrow>
+                                                <TableCell align="right" sx={{
+                                                    overflow: 'hidden',
+                                                    whiteSpace: 'nowrap',
+                                                    textOverflow: 'ellipsis',
+                                                    maxWidth: '200px',
+                                                }}>{row.features}</TableCell>
+                                            </Tooltip>
                                             <TableCell align="right">{row.premium_tier}</TableCell>
                                             <TableCell align="right">{row.first_seen}</TableCell>
                                         </TableRow>

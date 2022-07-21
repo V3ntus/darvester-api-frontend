@@ -108,10 +108,12 @@ function SearchAppBar() {
           <Divider />
         {['Guilds', 'Users', 'Info'].map((text, index) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton href={text.toLowerCase()}>
-              <ListItemIcon></ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
+            <Link to={text.toLowerCase()} style={{ width: '100%' }}>
+              <ListItemButton sx={{ width: '100%' }}>
+                <ListItemIcon></ListItemIcon>
+                <ListItemText primary={text} />
+              </ListItemButton>
+            </Link>
           </ListItem>
         ))}
       </List>
@@ -188,6 +190,7 @@ root.render(
           <Route path="/" element={<SearchAppBar />}>
             <Route path="guilds" element={<Guilds />} />
             <Route path="users" element={<Users />} />
+            <Route path="info" element={<></>} />
           </Route>
         </Routes>
       </BrowserRouter>

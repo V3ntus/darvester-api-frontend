@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+html {
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: #fff;
+  transition: all 0.6s cubic-bezier(0, 0, 0, 0.99);
+}
+
+a:hover {
+  color: #888;
+}

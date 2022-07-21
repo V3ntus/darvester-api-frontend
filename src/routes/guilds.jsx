@@ -12,6 +12,7 @@ import TableCell from '@mui/material/TableCell';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import { Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
+import { getComparator, getSmallerIcon } from '../common.js';
 
 const columns = [
     {id: 'id', numeric: true, disablePadding: true, label: 'ID'},
@@ -24,22 +25,6 @@ const columns = [
     {id: 'premium_tier', numeric: true, disablePadding: true, label: 'Nitro Tier'},
     {id: 'first_seen', numeric: true, disablePadding: true, label: 'First Seen'},
 ]
-
-function descComp(a, b, orderBy) {
-    if (b[orderBy] < a[orderBy]) {
-      return -1;
-    }
-    if (b[orderBy] > a[orderBy]) {
-      return 1;
-    }
-    return 0;
-}
-
-function getComparator(order, orderBy) {
-    return order === 'desc'
-        ? (a, b) => descComp(a, b, orderBy)
-        : (a, b) => -descComp(a, b, orderBy);
-}
 
 function EnhancedTableHead(props) {
     const { order, orderBy, onRequestSort } = props;
@@ -105,17 +90,6 @@ const EnhancedTableToolbar = (props) => {
             </Tooltip> */}
         </Toolbar>
     );
-}
-
-function getSmallerIcon(url) {
-    try {
-        url = new URL(url);
-        url.searchParams.set('size', '64');
-        url.search = url.searchParams.toString();
-        return url.toString();
-    } catch {
-        return "#";
-    }
 }
 
 export let requestSearch;

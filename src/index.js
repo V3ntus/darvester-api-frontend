@@ -22,7 +22,7 @@ import './index.css';
 import CssBaseline from '@mui/material/CssBaseline';
 import { styled, alpha, ThemeProvider, createTheme } from '@mui/material/styles';
 
-import Guilds from './routes/guilds';
+import { default as Guilds, requestSearch } from './routes/guilds';
 import Users from './routes/users';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -170,6 +170,7 @@ function SearchAppBar() {
             <StyledInputBase
               placeholder="Search…"
               inputProps={{ 'aria-label': 'search' }}
+              onInput={(e) => requestSearch(e.target.value)}
             />
           </Search>
         </Toolbar>

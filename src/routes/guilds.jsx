@@ -118,6 +118,7 @@ function getSmallerIcon(url) {
     }
 }
 
+export let requestSearch;
 export default function Guilds() {
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('name');
@@ -127,6 +128,7 @@ export default function Guilds() {
     const [error, setError] = React.useState(null);
     const [isLoaded, setIsLoaded] = React.useState(false);
     const [rows, setRows] = React.useState([]);
+    const [copyRows, setCopyRows] = React.useState(rows);
 
     const [retry, setRetry] = React.useState(false);
 
@@ -144,6 +146,10 @@ export default function Guilds() {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
+    requestSearch = (searched) => {
+        setCopyRows(rows.filter((row) => row.name.toLowerCase().includes(searched.toLowerCase())));
+    }
 
     useEffect(() => {
         fetch(`http://localhost:8080/guilds?limit=${rowsPerPage}&offset=${rowsPerPage * page}`)
@@ -214,7 +220,7 @@ export default function Guilds() {
                             rowCount={rows.length}
                         />
                         <TableBody>
-                            {rows.slice().sort(getComparator(order, orderBy))
+                            {(copyRows.length > 0 ? copyRows : rows).slice().sort(getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
                                     const labelId = `enhanced-table-row-${index}`;
@@ -230,20 +236,35 @@ export default function Guilds() {
                                                 scope="row"
                                                 padding="none"
                                                 align="left"
-                                                sx={{ paddingLeft: '16px' }}
+                                                sx={{ paddingLeft: '16px', minWidth: '70px' }}
                                             >
                                                 {row.id}
                                             </TableCell>
-                                            <TableCell align="left">{row.name}</TableCell>
+                                            <Tooltip title={row.name} placement="top" arrow>
+                                                <TableCell align="left" sx={{
+                                                    minWidth: '70px',
+                                                    overflow: 'hidden',
+                                                    whiteSpace: 'nowrap',
+                                                    textOverflow: 'ellipsis',
+                                                    maxWidth: '200px',
+                                                }}>{row.name}</TableCell>
+                                            </Tooltip>
                                             <TableCell align="center">
                                                 <Tooltip title={<><img src={getSmallerIcon(row.icon)} alt="Server icon"/></>} placement="top" arrow>
                                                     <Button onClick={() => window.open(row.icon, '_blank', 'noopener, noreferrer')} disabled={(row.icon !== "None") ? false : true}>Link</Button>
                                                 </Tooltip>
                                             </TableCell>
-                                            <TableCell align="left">{row.owner}</TableCell>
+                                            <TableCell align="left" sx={{
+                                                minWidth: '70px',
+                                                overflow: 'hidden',
+                                                whiteSpace: 'nowrap',
+                                                textOverflow: 'ellipsis',
+                                                maxWidth: '200px',
+                                            }}>{row.owner}</TableCell>
                                             <TableCell align="right">{row.member_count.toLocaleString()}</TableCell>
                                             <Tooltip title={row.description} placement="top" arrow>
                                                 <TableCell align="left" sx={{
+                                                    minWidth: '70px',
                                                     overflow: 'hidden',
                                                     whiteSpace: 'nowrap',
                                                     textOverflow: 'ellipsis',
@@ -252,6 +273,7 @@ export default function Guilds() {
                                             </Tooltip>
                                             <Tooltip title={row.features} placement="top" arrow>
                                                 <TableCell align="right" sx={{
+                                                    minWidth: '70px',
                                                     overflow: 'hidden',
                                                     whiteSpace: 'nowrap',
                                                     textOverflow: 'ellipsis',

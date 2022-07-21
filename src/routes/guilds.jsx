@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -10,8 +10,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableSortLabel from '@mui/material/TableSortLabel';
-import { Paper, TableContainer, Toolbar, Tooltip, Typography, IconButton, Divider } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
+import { Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 
 const columns = [
@@ -22,14 +21,9 @@ const columns = [
     {id: 'member_count', numeric: true, disablePadding: true, label: 'Members'},
     {id: 'description', numeric: false, disablePadding: true, label: 'Description'},
     {id: 'features', numeric: false, disablePadding: true, label: 'Features'},
-    {id: 'premium_tier', numeric: true, disablePadding: true, label: 'Premium Tier'},
+    {id: 'premium_tier', numeric: true, disablePadding: true, label: 'Nitro Tier'},
     {id: 'first_seen', numeric: true, disablePadding: true, label: 'First Seen'},
 ]
-
-// const rows = [
-//     {id: 1, name: 'Guild 1', icon: 'https://i.imgur.com/XyqQZ.png', owner: 'Owner 1', member_count: 1, description: 'Description 1', features: 'Features 1', premium_tier: 'Premium Tier 1', first_seen: 'First Seen 1'},
-//     {id: 2, name: 'Guild 2', icon: 'https://i.imgur.com/XyqQZ.png', owner: 'Owner 2', member_count: 2, description: 'Description 2', features: 'Features 2', premium_tier: 'Premium Tier 2', first_seen: 'First Seen 2'},
-// ]
 
 function descComp(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
@@ -158,7 +152,13 @@ export default function Guilds() {
                 (result) => {
                     setIsLoaded(true);
                     for (let i = 0; i < result['guilds'].length; i++) {
-                        result['guilds'][i]['first_seen'] = new Date(result['guilds'][i].first_seen * 1000).toLocaleDateString();
+                        result['guilds'][i]['first_seen'] = new Date(result['guilds'][i].first_seen * 1000).toLocaleDateString("en-US", {
+                            month: "2-digit",
+                            day: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        });
                         result['guilds'][i]['features'] = result['guilds'][i].features.join(', ');
                         result['guilds'][i]['owner'] = result['guilds'][i].owner.name + ` (${result['guilds'][i].owner.id})`;
                     }
@@ -258,7 +258,7 @@ export default function Guilds() {
                                                     maxWidth: '200px',
                                                 }}>{row.features}</TableCell>
                                             </Tooltip>
-                                            <TableCell align="right">{row.premium_tier}</TableCell>
+                                            <TableCell align="right" sx={{ width: "10px"}}>{row.premium_tier}</TableCell>
                                             <TableCell align="right">{row.first_seen}</TableCell>
                                         </TableRow>
                                     );

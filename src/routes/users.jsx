@@ -3,7 +3,12 @@ import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Snackbar from '@mui/material/Snackbar';
 import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import TablePagination from '@mui/material/TablePagination';
@@ -11,8 +16,11 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import { visuallyHidden } from '@mui/utils';
-import { Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/material';
+import { IconButton, Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/material';
 import { getComparator, getSmallerIcon } from '../common';
+import CloseIcon from '@mui/icons-material/Close';
+
+var JSONBig = require('json-bigint');
 
 const columns = [
     { id: 'id', label: 'ID', minWidth: 70, align: 'right' },
@@ -98,12 +106,71 @@ export default function Users() {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
+    // Modals
+    const [guildsModalOpen, setGuildsModalOpen] = React.useState(false);
+    const [guildsModalGuilds, setGuildsInModal] = React.useState([]);
+    const [currentGuildsModal, setCurrentGuildsModal] = React.useState("");
+    const handleGuildsOpen = (guilds, username) => {
+        let _to_ret = [];
+        let _promises = [];
+        setSnackbarMessage(`Loading ${username}'s guilds...`);
+        setSnackbarOpen(true);
+        for (let i = 0; i < guilds.length; i++) {
+            _promises.push(fetch("http://localhost:8080/guilds/" + guilds[i]).then(res => res.text()).then(data => {
+                data = JSONBig.parse(data);
+                _to_ret.push({
+                    id: data.id.toString(),
+                    name: data.name
+                });
+            }, (err) => {console.log("Could not fetch guild:", guilds[i], err.message)})
+                .then(() => {
+                    setGuildsInModal(_to_ret);
+                    console.log(_to_ret, i);
+                }));
+        }
+        Promise.all(_promises)
+            .then(() => {
+                console.log(_to_ret.length, guilds.length);
+                console.log(_to_ret, "Done");
+                setCurrentGuildsModal(username);
+                setGuildsModalOpen(true)
+            })
+    };
+
+    const handleGuildsClose = () => {
+        setGuildsModalOpen(false)
+        setGuildsInModal([]);
+        setCurrentGuildsModal("");
+    };
+
     const [error, setError] = React.useState(null);
     const [isLoaded, setIsLoaded] = React.useState(false);
     const [rows, setRows] = React.useState([]);
     const [copyRows, setCopyRows] = React.useState(rows);
 
     const [retry, setRetry] = React.useState(false);
+
+    const [snackbarMessage, setSnackbarMessage] = React.useState("");
+    const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+    const snackbarAction = (
+        <React.Fragment>
+            <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={() => setSnackbarOpen(false)}
+            >
+                <CloseIcon fontSize="small" />
+            </IconButton>
+        </React.Fragment>
+    )
+
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false);
+    }
 
     const handlerRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -126,13 +193,17 @@ export default function Users() {
 
     useEffect(() => {
         fetch(`http://localhost:8080/users?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
-            .then(res => res.json())
+            .then((res) => res.text())
+            // .then((res) => {return JSON.parse(res.replace(/"id":(\d+)/g, '"id": "$1"').replace(/"id":(\d+),/g, '"id": "$1",'))}) // fix for Javascript's max integer size : bug: does not work for arrays
+            .then((res) => {return JSONBig.parse(res);}) // sidorares' fix for bigint parsing - thank you so much
             .then(
                 (result) => {
                     setIsLoaded(true);
                     for (let i = 0; i < result['users'].length; i++) {
+                        result['users'][i]['id'] = result['users'][i]['id'].toString();
                         result['users'][i]['name'] = result['users'][i]['name'] + "#" + result['users'][i]['discriminator'];
-                        result['users'][i]['mutual_guilds'] = result['users'][i]['mutual_guilds'].length;
+                        result['users'][i]['mutual_guilds_data'] = result['users'][i]['mutual_guilds']['guilds'];
+                        result['users'][i]['mutual_guilds'] = result['users'][i]['mutual_guilds']['guilds'].length;
                         result['users'][i]['connected_accounts'] = result['users'][i]['connected_accounts'].length;
                         result['users'][i]['public_flags'] = result['users'][i]['public_flags'].length;
                         result['users'][i]['activities'] = result['users'][i]['activities'].length;
@@ -166,6 +237,7 @@ export default function Users() {
                     setIsLoaded(true);
                     setError(error);
                     setRetry(true);
+                    console.log(error);
                 }
             )
     }, [page, rowsPerPage, retry]);
@@ -243,7 +315,7 @@ export default function Users() {
                                                 </TableCell>
                                             </Tooltip>
 
-                                            <Tooltip title={row.bio} placement="top" arrow>
+                                            <Tooltip title={row.bio !== "None" ? row.bio : ""} placement="top" arrow>
                                                 <TableCell align='left' sx={{
                                                     minWidth: '70px',
                                                     overflow: 'hidden',
@@ -251,19 +323,19 @@ export default function Users() {
                                                     textOverflow: 'ellipsis',
                                                     maxWidth: '200px',
                                                 }}>
-                                                    {row.bio}
+                                                    {row.bio !== "None" ? row.bio : ""}
                                                 </TableCell>
                                             </Tooltip>
 
                                             <TableCell align="center">
-                                                <Tooltip title={<><img src={getSmallerIcon(row.avatar_url)} alt="Profile" /></>} placement="top" arrow>
-                                                    <Button onClick={() => window.open(row.avatar_url, '_blank', 'noopener, noreferrer')}>Link</Button>
+                                                <Tooltip title={<><img src={getSmallerIcon(row.avatar_url)} alt="Profile" /></>} placement="left" arrow>
+                                                    <Button variant="text" onClick={() => window.open(row.avatar_url, '_blank', 'noopener, noreferrer')}>Link</Button>
                                                 </Tooltip>
                                             </TableCell>
 
-                                            <Tooltip title={row.mutual_guilds} placement="top" arrow>
+                                            <Tooltip title={"Seen in " + row.mutual_guilds + " guild(s). Click for more details"} placement="right" arrow>
                                                 <TableCell align="left">
-                                                    {row.mutual_guilds}
+                                                    <Button variant="text" onClick={() => handleGuildsOpen(row.mutual_guilds_data, row.name)}>{row.mutual_guilds}</Button>
                                                 </TableCell>
                                             </Tooltip>
 
@@ -325,6 +397,46 @@ export default function Users() {
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+                <Modal
+                    open={guildsModalOpen}
+                    onClose={handleGuildsClose}
+                    aria-labelledby="guilds-modal-title"
+                    aria-describedby="guilds-modal-description"
+                >
+                    <Box
+                        sx={{
+                            position: 'fixed',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '400',
+                            bgcolor: 'background.paper',
+                            border: '1px solid #000',
+                            boxShadow: 24,
+                            p: 4,
+                            borderradious: '4px',
+                        }}
+                        >
+                            <Typography variant="h4" component="h4">
+                                <b>{currentGuildsModal}'s guilds:</b>
+                            </Typography>
+                            <List>
+                                {guildsModalGuilds.map((guild, index) => (
+                                    <ListItem key={guild.name} disablePadding>
+                                        <ListItemText primary={guild.name} secondary={guild.id} />
+                                        <Button href="#" onClick={() => window.open(guild.id, '_blank', 'noopener, noreferrer')}>{guild.name}</Button>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Box>
+                </Modal>
+                <Snackbar 
+                    open={snackbarOpen}
+                    autoHideDuration={6000}
+                    onClose={handleSnackbarClose}
+                    message={snackbarMessage}
+                    action={snackbarAction}
                 />
             </Paper>
         </Box>

@@ -22,8 +22,9 @@ import './index.css';
 import CssBaseline from '@mui/material/CssBaseline';
 import { styled, alpha, ThemeProvider, createTheme } from '@mui/material/styles';
 
-import { default as Guilds, requestSearch } from './routes/guilds';
+import { default as Guilds } from './routes/guilds';
 import Users from './routes/users';
+import { requestSearch } from './common';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const theme = createTheme({

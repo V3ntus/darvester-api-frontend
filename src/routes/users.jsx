@@ -176,15 +176,21 @@ export default function Users() {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
+        setSnackbarMessage(`Sorting ${property} by ${isAsc ? 'descending' : 'ascending'}...`);
+        setSnackbarOpen(true);
     };
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+        setSnackbarMessage(`Loading page ${newPage}...`);
+        setSnackbarOpen(true);
     };
 
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
+        setSnackbarMessage(`Showing ${parseInt(event.target.value, 10)} results...`);
+        setSnackbarOpen(true);
     };
 
     // requestSearch = (searched) => {
@@ -192,7 +198,7 @@ export default function Users() {
     // }
 
     useEffect(() => {
-        fetch(`http://localhost:8080/users?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
+        fetch(`http://localhost:8080/users`)
             .then((res) => res.text())
             // .then((res) => {return JSON.parse(res.replace(/"id":(\d+)/g, '"id": "$1"').replace(/"id":(\d+),/g, '"id": "$1",'))}) // fix for Javascript's max integer size : bug: does not work for arrays
             .then((res) => {return JSONBig.parse(res);}) // sidorares' fix for bigint parsing - thank you so much
@@ -390,7 +396,7 @@ export default function Users() {
                     </Table>
                 </TableContainer>
                 <TablePagination 
-                    rowsPerPageOptions={[25, 50, 100]}
+                    rowsPerPageOptions={[10, 25, 50, 100]}
                     component="div"
                     count={rows.length}
                     rowsPerPage={rowsPerPage}

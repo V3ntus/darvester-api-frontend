@@ -15,6 +15,10 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 import { Link, Outlet} from 'react-router-dom';
 
@@ -69,27 +73,44 @@ export function SearchAppBar() {
     });
     const [searchTerm, setSearchTerm] = React.useState('');
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e);
-    }
-
-    const renderResults = () => {
-        console.log("searchTerm", searchTerm);
-    }
-
-    if (searchTerm !== "") {
-        //
-    }
+    const [open, setOpen] = React.useState(false);
+    const [options, setOptions] = React.useState([]);
+    const loading = open && options.filter(
+      function(obj) {
+        return Object.keys(obj).some(function(key) {
+          if (typeof(obj[key]) === 'string') return obj[key].toLowerCase().includes(searchTerm.toLowerCase());
+          return false;
+        })
+      }
+    ).length < 25;
 
     const debouncedResults = React.useMemo(() => {
-        return debounce(handleSearchChange, 500);
-    }, []);
+        return debounce((async () => {
+            if (searchTerm === "" || undefined) return undefined;
+            fetch(`http://localhost:8080/search/${searchTerm}?limit=25`).then(res => res.json()).then(res => {
+                res['users'].forEach(element => {
+                    element['type'] = 'User';
+                });
+                res['guilds'].forEach(element => {
+                    element['type'] = 'Guild';
+                });
+                setOptions([...res['users'], ...res['guilds']]);
+            });
+        }), 500)
+    }, [searchTerm]);
 
     React.useEffect(() => {
-        return () => {
-            debouncedResults.cancel();
+        if (!loading && options.length !== 0) {
+            return undefined;
         }
-    });
+        debouncedResults();
+    }, [loading, options.length]);
+
+    React.useEffect(() => {
+      if (!open) {
+        setOptions([]);
+      }
+    }, [open])
   
     const toggleDrawer = (anchor, open) => (event) => {
       if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
@@ -181,10 +202,42 @@ export function SearchAppBar() {
               <SearchIconWrapper>
                 <SearchIcon />
               </SearchIconWrapper>
-              <StyledInputBase
+              {/* <StyledInputBase
                 placeholder="Search…"
                 inputProps={{ 'aria-label': 'search' }}
                 onInput={(e) => (debouncedResults(e.target.value))}
+              /> */}
+              <Autocomplete 
+                id="async-search"
+                sx={{ width: 300 }}
+                open={open}
+                onInputChange={(e) => {setSearchTerm(e.target.value)}}
+                onOpen={() => {
+                  setOpen(true);
+                }}
+                onClose={() => {
+                  setOpen(false);
+                }}
+                isOptionEqualToValue={(option, value) => option.name.toLowerCase() === value.name.toLowerCase()}
+                getOptionLabel={(option) => option.name}
+                groupBy={(option) => option.type}
+                options={options}
+                loading={loading}
+                renderInput={(params) => (
+                  <TextField 
+                    {...params}
+                    label="Search"
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <React.Fragment>
+                          {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </React.Fragment>
+                      )
+                    }}
+                  />
+                )}
               />
             </Search>
           </Toolbar>

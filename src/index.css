@@ -13,3 +13,14 @@ a {
 a:hover {
   color: #888;
 }
+
+.home_header {
+  transition: all 0.5s;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home_header.hide {
+  opacity: 0;
+  transform: translateY(-100%);
+}

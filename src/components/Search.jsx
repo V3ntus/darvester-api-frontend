@@ -16,13 +16,14 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
-
+import Stack from '@mui/material/Stack';
+import Paper from '@mui/material/Paper';
 
 import { Link, Outlet} from 'react-router-dom';
 
-import { theme } from '../common';
+import ImageWithFallback from './Image';
+import { getSmallerIcon, theme } from '../common';
 import debounce from 'lodash.debounce';
 
 export const Search = styled('div')(({ theme }) => ({
@@ -38,12 +39,14 @@ export const Search = styled('div')(({ theme }) => ({
       marginLeft: theme.spacing(1),
       width: 'auto',
     },
+    float: 'right'
 }));
 
 export const SearchIconWrapper = styled('div')(({ theme }) => ({
     padding: theme.spacing(0, 2),
     height: '100%',
     position: 'absolute',
+    left: '-60px',
     pointerEvents: 'none',
     display: 'flex',
     alignItems: 'center',
@@ -67,50 +70,45 @@ export const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
 }));
 
+const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#222222' : '#ffffff',
+    ...theme.typography.body2,
+    padding: theme.spacing(1.25),
+    margin: theme.spacing(1),
+    textAlign: 'left',
+    color: theme.palette.text.seconday
+}));
+
 export function SearchAppBar() {
     const [state, setState] = React.useState({
       left: false
     });
-    const [searchTerm, setSearchTerm] = React.useState('');
+    const [loading, setLoading] = React.useState(false);
 
-    const [open, setOpen] = React.useState(false);
+    const [searchOpen, setSearchOpen] = React.useState(false);
     const [options, setOptions] = React.useState([]);
-    const loading = open && options.filter(
-      function(obj) {
-        return Object.keys(obj).some(function(key) {
-          if (typeof(obj[key]) === 'string') return obj[key].toLowerCase().includes(searchTerm.toLowerCase());
-          return false;
-        })
-      }
-    ).length < 25;
 
-    const debouncedResults = React.useMemo(() => {
-        return debounce((async () => {
-            if (searchTerm === "" || undefined) return undefined;
-            fetch(`http://localhost:8080/search/${searchTerm}?limit=25`).then(res => res.json()).then(res => {
+    const doSearch = (term) => {
+        if (term === "" || term === undefined) {setOptions([]); return undefined};
+        // setLoading(true);  // this not work
+        fetch(`http://localhost:8080/search/${term}?limit=50`).then(res => res.json()).then(res => {
                 res['users'].forEach(element => {
                     element['type'] = 'User';
                 });
                 res['guilds'].forEach(element => {
                     element['type'] = 'Guild';
                 });
-                setOptions([...res['users'], ...res['guilds']]);
+                setOptions([...res['guilds'], ...res['users']]);
             });
-        }), 500)
-    }, [searchTerm]);
+        // setLoading(false);
+    };
 
+    // If search is not open, clear options
     React.useEffect(() => {
-        if (!loading && options.length !== 0) {
-            return undefined;
-        }
-        debouncedResults();
-    }, [loading, options.length]);
-
-    React.useEffect(() => {
-      if (!open) {
+      if (!searchOpen) {
         setOptions([]);
       }
-    }, [open])
+    }, [searchOpen])
   
     const toggleDrawer = (anchor, open) => (event) => {
       if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
@@ -127,10 +125,11 @@ export function SearchAppBar() {
         onKeyDown={toggleDrawer(anchor, false)}
       >
         <List>
-          <Link to="/">
+          <Link to="/" id="drawer_header">
             <Typography
               variant="h4"
               align="center"
+              id="drawer_header"
               sx={{
                 padding: theme.spacing(2),
               }}
@@ -202,43 +201,109 @@ export function SearchAppBar() {
               <SearchIconWrapper>
                 <SearchIcon />
               </SearchIconWrapper>
-              {/* <StyledInputBase
-                placeholder="Search…"
-                inputProps={{ 'aria-label': 'search' }}
-                onInput={(e) => (debouncedResults(e.target.value))}
-              /> */}
-              <Autocomplete 
-                id="async-search"
-                sx={{ width: 300 }}
-                open={open}
-                onInputChange={(e) => {setSearchTerm(e.target.value)}}
-                onOpen={() => {
-                  setOpen(true);
-                }}
-                onClose={() => {
-                  setOpen(false);
-                }}
-                isOptionEqualToValue={(option, value) => option.name.toLowerCase() === value.name.toLowerCase()}
-                getOptionLabel={(option) => option.name}
-                groupBy={(option) => option.type}
-                options={options}
-                loading={loading}
-                renderInput={(params) => (
-                  <TextField 
-                    {...params}
-                    label="Search"
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
+              <TextField 
+                id="search_field"
+                label="Search..."
+                variant="outlined"
+                onChange={debounce((e) => doSearch(e.target.value), 300)}
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => setSearchOpen(false)}
+                InputProps={{
+                    endAdornment: (
                         <React.Fragment>
-                          {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                          {params.InputProps.endAdornment}
+                            <CircularProgress sx={{ display: loading ? 'block' : 'none' }} color="inherit" size={20} />
                         </React.Fragment>
-                      )
-                    }}
-                  />
-                )}
+                    )
+                }}
               />
+                <Stack sx={{
+                display: searchOpen ? 'block' : 'none',
+                position: 'absolute',
+                maxHeight: '600px',
+                minWidth: '500px',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                zIndex: '5',
+                right: 0,
+                marginTop: '10px',
+                backgroundColor: '#333333',
+                padding: '12px',
+                borderRadius: '6px'
+                }}>
+                <Typography
+                    variant="h4"
+                    color="#777777"
+                    fontWeight="light"
+                >
+                    Guilds
+                </Typography>
+                <Divider sx={{ margin: "12px" }} />
+                {options
+                    .filter((el) => {
+                        return el.type === 'Guild';
+                    })
+                    .map((option, index) => (
+                        <Link to={`/guild/${option['id']}`}>
+                            <Item>
+                                <Box component="div" sx={{ display: 'inline-block', paddingRight: '12px' }}>
+                                    <ImageWithFallback src={getSmallerIcon(option['icon'])} fallback="/default_avatar.png" alt={option['name']} width="64px" style={{ borderRadius: "4px" }} />
+                                </Box>
+                                <Box component="div" sx={{ display: 'inline-block', paddingRight: '12px' }}>
+                                    <Typography variant="subtitle2" sx={{
+                                            fontWeight: 'bold',
+                                            fontSize: '24px'
+                                        }}>{option['name']}</Typography>
+                                    <Typography variant="subtitle1" sx={{ fontSize: '12px' }}>{option['id']}</Typography>
+                                </Box>
+                            </Item>
+                        </Link>
+                ))}
+                <Typography variant="subtitle1" sx={{
+                    fontWeight: 'light',
+                    color: '#777777',
+                }}>{options.filter((el) => {return el.type === 'Guild'}).length} results</Typography>
+                <Typography
+                    variant="h4"
+                    color="#777777"
+                    fontWeight="light"
+                >
+                    Users
+                </Typography>
+                <Divider sx={{ margin: "12px" }} />
+                {options
+                    .filter((el) => {
+                        return el.type === 'User';
+                    })
+                    .map((option, index) => (
+                        <Link to={`/user/${option['id']}`}>
+                        <Item>
+                                <Box component="div" sx={{ display: 'inline-block', paddingRight: '8px' }}>
+                                    <ImageWithFallback src={getSmallerIcon(option['avatar_url'])} fallback="/default_avatar.png" alt={option['name']} width="64px" style={{ borderRadius: "4px" }} />
+                                </Box>
+                                <Box component="div" sx={{ display: 'inline-block' }}>
+                                    <Typography variant="subtitle2" sx={{
+                                            fontWeight: 'bold',
+                                            fontSize: '24px'
+                                        }}
+                                        component="span">
+                                        {option['name']}
+                                    </Typography>
+                                    <Typography variant="subtitle2" component="span" sx={{
+                                        fontSize: '20px',
+                                    }}>
+                                        #{option['discriminator']}
+                                    </Typography>
+                                    <Typography variant="subtitle1" sx={{ fontSize: '12px' }}>{option['id']}</Typography>
+                                </Box>
+                        </Item>
+                        </Link>
+                    ))
+                }
+                <Typography variant="subtitle1" sx={{
+                    fontWeight: 'light',
+                    color: '#777777',
+                }}>{options.filter((el) => {return el.type === 'User'}).length} results</Typography>
+                </Stack>
             </Search>
           </Toolbar>
         </AppBar>

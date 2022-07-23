@@ -43,7 +43,7 @@ a:hover {
 
 .home_header.hide {
   opacity: 0;
-  transform: translateY(-100%);
+  transform: translateY(100%);
 }
 
 #drawer_header {

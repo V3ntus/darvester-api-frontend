@@ -33,6 +33,8 @@ export const Search = styled('div')(({ theme }) => ({
     '&:hover': {
       backgroundColor: alpha(theme.palette.common.white, 0.25),
     },
+    marginTop: '10px',
+    marginBottom: '10px',
     marginLeft: 0,
     width: '100%',
     [theme.breakpoints.up('sm')]: {
@@ -76,7 +78,7 @@ const Item = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(1.25),
     margin: theme.spacing(1),
     textAlign: 'left',
-    color: theme.palette.text.seconday
+    color: theme.palette.text.seconday,
 }));
 
 export function SearchAppBar() {
@@ -199,7 +201,7 @@ export function SearchAppBar() {
             </Typography>
             <Search>
               <SearchIconWrapper>
-                <SearchIcon />
+                <SearchIcon sx={{ display: { xs: 'none', sm: 'block' } }}/>
               </SearchIconWrapper>
               <TextField 
                 id="search_field"
@@ -215,16 +217,27 @@ export function SearchAppBar() {
                         </React.Fragment>
                     )
                 }}
+                sx={{
+                  padding: theme.spacing(0, 0, 0, 0),
+                  transition: theme.transitions.create('width'),
+                  width: { xs: '100%' },
+                  [theme.breakpoints.up('lg')]: {
+                    width: '20em',
+                    '&:focus': {
+                      width: '32em',
+                    },
+                  }
+                }}
               />
                 <Stack sx={{
                 display: searchOpen ? 'block' : 'none',
                 position: 'absolute',
-                maxHeight: '600px',
-                minWidth: '500px',
+                maxHeight: { xs: '70vh', md: '600px' },
+                minWidth: { xs: '95vw', lg: '500px' },
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 zIndex: '5',
-                right: 0,
+                right: { xs: '-12px', lg: '0' },
                 marginTop: '10px',
                 backgroundColor: '#333333',
                 padding: '12px',
@@ -246,12 +259,12 @@ export function SearchAppBar() {
                         <Link to={`/guild/${option['id']}`}>
                             <Item>
                                 <Box component="div" sx={{ display: 'inline-block', paddingRight: '12px' }}>
-                                    <ImageWithFallback src={getSmallerIcon(option['icon'])} fallback="/default_avatar.png" alt={option['name']} width="64px" style={{ borderRadius: "4px" }} />
+                                    <ImageWithFallback src={getSmallerIcon(option['icon'])} fallback="/default_avatar.png" alt={option['name']} style={{ borderRadius: "4px", width: {xs: "24px", md: "64px"} }} />
                                 </Box>
                                 <Box component="div" sx={{ display: 'inline-block', paddingRight: '12px' }}>
                                     <Typography variant="subtitle2" sx={{
                                             fontWeight: 'bold',
-                                            fontSize: '24px'
+                                            fontSize: {xs: "16px", md: "24px"},
                                         }}>{option['name']}</Typography>
                                     <Typography variant="subtitle1" sx={{ fontSize: '12px' }}>{option['id']}</Typography>
                                 </Box>
@@ -283,7 +296,7 @@ export function SearchAppBar() {
                                 <Box component="div" sx={{ display: 'inline-block' }}>
                                     <Typography variant="subtitle2" sx={{
                                             fontWeight: 'bold',
-                                            fontSize: '24px'
+                                            fontSize: {xs: "16px", md: "24px"}
                                         }}
                                         component="span">
                                         {option['name']}

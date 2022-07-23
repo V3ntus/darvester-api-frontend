@@ -45,6 +45,15 @@ class App extends React.Component {
         <Typography variant="h1" component="h1" align="center" className={classes}>
           Darvester
         </Typography>
+        <Box sx={{
+          backgroundColor: "#444444",
+          width: { xs: '100%', md: '80%' },
+          margin: 'auto',
+          padding: theme.spacing(2),
+          borderRadius: "4px",
+        }}>
+          To get started, open the drawer on the left
+        </Box>
       </Box>
     );
   }

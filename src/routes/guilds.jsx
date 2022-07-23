@@ -156,7 +156,7 @@ export default function Guilds() {
 
     if (error) {
         return (
-            <Box sx={{ width: '80%', margin: "auto" }}>
+            <Box sx={{ width: { xs: '100%', md: '80%' }, margin: "auto" }}>
                 <Paper sx={{ width: '100%', mb: 2, padding: '36px' }}>
                     <Typography variant="h5" component="h3">
                         Error: {error.message}
@@ -167,7 +167,7 @@ export default function Guilds() {
         )
     } else if (!isLoaded) {
         return (
-            <Box sx={{ width: '80%', margin: "auto" }}>
+            <Box sx={{ width: { xs: '100%', md: '80%' }, margin: "auto" }}>
                 <Paper sx={{ width: '100%', mb: 2, padding: '36px' }}>
                     <Typography variant="h5" component="h3">
                         Loading...
@@ -178,7 +178,7 @@ export default function Guilds() {
     }
 
     return (
-        <Box sx={{ width: '80%', margin: "auto" }}>
+        <Box sx={{ width: { xs: '100%', md: '80%' }, margin: "auto" }}>
             <Paper sx={{ width: '100%', mb: 2 }}>
                 <EnhancedTableToolbar />
                 <TableContainer>

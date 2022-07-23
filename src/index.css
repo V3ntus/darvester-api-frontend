@@ -4,6 +4,27 @@ html {
   font-family: 'Montserrat', 'Roboto', sans-serif;
 }
 
+::-webkit-scrollbar {
+  width: 7px;
+  border-radius: 2px solid #222222;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #222222;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #666666;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+  transition: background 0.5s ease-in-out;
+}
+
 a {
   text-decoration: none;
   color: #fff;
@@ -12,4 +33,21 @@ a {
 
 a:hover {
   color: #888;
+}
+
+.home_header {
+  transition: all 0.5s;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home_header.hide {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+#drawer_header {
+  background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("../public/darvester.png");
+  background-size: 100%;
+  background-repeat: no-repeat;
 }

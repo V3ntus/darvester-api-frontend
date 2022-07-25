@@ -10,6 +10,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import Snackbar from '@mui/material/Snackbar';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -25,6 +26,8 @@ import { Link, Outlet} from 'react-router-dom';
 import ImageWithFallback from './Image';
 import { getSmallerIcon, theme } from '../common';
 import debounce from 'lodash.debounce';
+
+var JSONBig = require('json-bigint');
 
 export const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -79,6 +82,7 @@ const Item = styled(Paper)(({ theme }) => ({
     margin: theme.spacing(1),
     textAlign: 'left',
     color: theme.palette.text.seconday,
+    transition: theme.transitions.create('background-color'),
 }));
 
 export function SearchAppBar() {
@@ -89,11 +93,20 @@ export function SearchAppBar() {
 
     const [searchOpen, setSearchOpen] = React.useState(false);
     const [options, setOptions] = React.useState([]);
+    const [onOptionClicked, setOnOptionClicked] = React.useState(false);
+    const [snackbarMessage, setSnackbarMessage] = React.useState('');
 
     const doSearch = (term) => {
         if (term === "" || term === undefined) {setOptions([]); return undefined};
         // setLoading(true);  // this not work
-        fetch(`http://localhost:8080/search/${term}?limit=50`).then(res => res.json()).then(res => {
+        fetch(`http://localhost:8080/search/${term}?limit=50`).then(res => res.text()).then(res => {
+                res = JSONBig.parse(res);
+                res['users'].forEach(element => {
+                    element['id'] = element['id'].toString();
+                });
+                res['guilds'].forEach(element => {
+                   element['id'] = element['id'].toString();
+                });
                 res['users'].forEach(element => {
                     element['type'] = 'User';
                 });
@@ -209,7 +222,7 @@ export function SearchAppBar() {
                 variant="outlined"
                 onChange={debounce((e) => doSearch(e.target.value), 300)}
                 onFocus={() => setSearchOpen(true)}
-                onBlur={() => setSearchOpen(false)}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 300)} // Delays closing of results before the link registers a click
                 InputProps={{
                     endAdornment: (
                         <React.Fragment>
@@ -256,10 +269,10 @@ export function SearchAppBar() {
                         return el.type === 'Guild';
                     })
                     .map((option, index) => (
-                        <Link to={`/guild/${option['id']}`}>
-                            <Item>
+                        <Link to={`/guild?id=${option['id']}`} onClick={() => {setOnOptionClicked(true); setSnackbarMessage(`${option['name']}`)}}>
+                            <Item className='search_item guild_search_item'>
                                 <Box component="div" sx={{ display: 'inline-block', paddingRight: '12px' }}>
-                                    <ImageWithFallback src={getSmallerIcon(option['icon'])} fallback="/default_avatar.png" alt={option['name']} style={{ borderRadius: "4px", width: {xs: "24px", md: "64px"} }} />
+                                    <ImageWithFallback src={getSmallerIcon(option['icon'])} fallback="/default_avatar.png" alt={option['name']} width="64px" style={{ borderRadius: "4px", width: {xs: "24px", md: "64px"} }} />
                                 </Box>
                                 <Box component="div" sx={{ display: 'inline-block', paddingRight: '12px' }}>
                                     <Typography variant="subtitle2" sx={{
@@ -288,8 +301,8 @@ export function SearchAppBar() {
                         return el.type === 'User';
                     })
                     .map((option, index) => (
-                        <Link to={`/user/${option['id']}`}>
-                        <Item>
+                        <Link to={`/user?id=${option['id']}`} style={{ zIndex: 6 }} onClick={() => {setOnOptionClicked(true); setSnackbarMessage(`${option['name']}`)}}>
+                        <Item className='search_item user_search_item'>
                                 <Box component="div" sx={{ display: 'inline-block', paddingRight: '8px' }}>
                                     <ImageWithFallback src={getSmallerIcon(option['avatar_url'])} fallback="/default_avatar.png" alt={option['name']} width="64px" style={{ borderRadius: "4px" }} />
                                 </Box>
@@ -321,6 +334,12 @@ export function SearchAppBar() {
           </Toolbar>
         </AppBar>
         <Outlet />
+        <Snackbar 
+          open={onOptionClicked}
+          onClose={() => setOnOptionClicked(false)}
+          message={`Loading ${snackbarMessage}`}
+          autoHideDuration={3000}
+        />
       </Box>
     );
   }

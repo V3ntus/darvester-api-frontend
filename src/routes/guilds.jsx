@@ -14,6 +14,8 @@ import { Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/materi
 import { visuallyHidden } from '@mui/utils';
 import { getComparator, getSmallerIcon } from '../common.js';
 
+var JSONBig = require('json-bigint');
+
 const columns = [
     {id: 'id', numeric: true, disablePadding: true, label: 'ID'},
     {id: 'name', numeric: false, disablePadding: true, label: 'Name'},
@@ -127,9 +129,10 @@ export default function Guilds() {
 
     useEffect(() => {
         fetch(`http://localhost:8080/guilds?limit=${rowsPerPage}&offset=${rowsPerPage * page}`)
-            .then(res => res.json())
+            .then(res => res.text())
             .then(
                 (result) => {
+                    result = JSONBig.parse(result);
                     setIsLoaded(true);
                     for (let i = 0; i < result['guilds'].length; i++) {
                         result['guilds'][i]['first_seen'] = new Date(result['guilds'][i].first_seen * 1000).toLocaleDateString("en-US", {
@@ -139,6 +142,7 @@ export default function Guilds() {
                             hour: "2-digit",
                             minute: "2-digit"
                         });
+                        result['guilds'][i]['id'] = result['guilds'][i]['id'].toString();
                         result['guilds'][i]['features'] = result['guilds'][i].features.join(', ');
                         result['guilds'][i]['owner'] = result['guilds'][i].owner.name + ` (${result['guilds'][i].owner.id})`;
                     }

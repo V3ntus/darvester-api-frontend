@@ -19,6 +19,7 @@ import { theme } from './common';
 // Routes
 import { default as Guilds } from './routes/guilds';
 import Users from './routes/users';
+import Guild from './routes/guild';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -49,10 +50,21 @@ class App extends React.Component {
           backgroundColor: "#444444",
           width: { xs: '100%', md: '80%' },
           margin: 'auto',
+          marginBottom: '1rem',
           padding: theme.spacing(2),
           borderRadius: "4px",
         }}>
-          To get started, open the drawer on the left
+          To get started, open the drawer on the left or begin a search.
+        </Box>
+        <Box sx={{
+          backgroundColor: "#444444",
+          width: { xs: '100%', md: '80%' },
+          margin: 'auto',
+          marginBottom: '1rem',
+          padding: theme.spacing(2),
+          borderRadius: "4px",
+        }}>
+          Stuff and things
         </Box>
       </Box>
     );
@@ -69,6 +81,8 @@ root.render(
             <Route path="guilds" element={<Guilds />} />
             <Route path="users" element={<Users />} />
             <Route path="info" element={<></>} />
+            <Route path="guild" element={<Guild />} />
+            <Route path="user" element={<></>} />
           </Route>
         </Routes>
       </BrowserRouter>

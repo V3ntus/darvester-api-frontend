@@ -18,13 +18,14 @@ export const getComparator = (order, orderBy) => {
 }
 
 // Utilities
-export function getSmallerIcon(url) {
+export function getSmallerIcon(url, size) {
     try {
         url = new URL(url);
-        url.searchParams.set('size', '64');
+        url.searchParams.set('size', size ? size.toString() : '64');
         url.search = url.searchParams.toString();
         return url.toString();
-    } catch {
+    } catch (e) {
+        console.log(e);
         return "#";
     }
 }

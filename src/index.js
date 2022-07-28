@@ -18,8 +18,9 @@ import { theme } from './common';
 
 // Routes
 import { default as Guilds } from './routes/guilds';
-import Users from './routes/users';
 import Guild from './routes/guild';
+import Users from './routes/users';
+import User from './routes/user';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -82,7 +83,7 @@ root.render(
             <Route path="users" element={<Users />} />
             <Route path="info" element={<></>} />
             <Route path="guild" element={<Guild />} />
-            <Route path="user" element={<></>} />
+            <Route path="user" element={<User />} />
           </Route>
         </Routes>
       </BrowserRouter>

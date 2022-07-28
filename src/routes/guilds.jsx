@@ -14,6 +14,10 @@ import { Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/materi
 import { visuallyHidden } from '@mui/utils';
 import { getComparator, getSmallerIcon } from '../common.js';
 
+import { Link } from 'react-router-dom';
+
+var JSONBig = require('json-bigint');
+
 const columns = [
     {id: 'id', numeric: true, disablePadding: true, label: 'ID'},
     {id: 'name', numeric: false, disablePadding: true, label: 'Name'},
@@ -127,9 +131,10 @@ export default function Guilds() {
 
     useEffect(() => {
         fetch(`http://localhost:8080/guilds?limit=${rowsPerPage}&offset=${rowsPerPage * page}`)
-            .then(res => res.json())
+            .then(res => res.text())
             .then(
                 (result) => {
+                    result = JSONBig.parse(result);
                     setIsLoaded(true);
                     for (let i = 0; i < result['guilds'].length; i++) {
                         result['guilds'][i]['first_seen'] = new Date(result['guilds'][i].first_seen * 1000).toLocaleDateString("en-US", {
@@ -139,6 +144,7 @@ export default function Guilds() {
                             hour: "2-digit",
                             minute: "2-digit"
                         });
+                        result['guilds'][i]['id'] = result['guilds'][i]['id'].toString();
                         result['guilds'][i]['features'] = result['guilds'][i].features.join(', ');
                         result['guilds'][i]['owner'] = result['guilds'][i].owner.name + ` (${result['guilds'][i].owner.id})`;
                     }
@@ -156,7 +162,7 @@ export default function Guilds() {
 
     if (error) {
         return (
-            <Box sx={{ width: '80%', margin: "auto" }}>
+            <Box sx={{ width: { xs: '100%', md: '80%' }, margin: "auto" }}>
                 <Paper sx={{ width: '100%', mb: 2, padding: '36px' }}>
                     <Typography variant="h5" component="h3">
                         Error: {error.message}
@@ -167,7 +173,7 @@ export default function Guilds() {
         )
     } else if (!isLoaded) {
         return (
-            <Box sx={{ width: '80%', margin: "auto" }}>
+            <Box sx={{ width: { xs: '100%', md: '80%' }, margin: "auto" }}>
                 <Paper sx={{ width: '100%', mb: 2, padding: '36px' }}>
                     <Typography variant="h5" component="h3">
                         Loading...
@@ -178,7 +184,7 @@ export default function Guilds() {
     }
 
     return (
-        <Box sx={{ width: '80%', margin: "auto" }}>
+        <Box sx={{ width: { xs: '100%', md: '80%' }, margin: "auto" }}>
             <Paper sx={{ width: '100%', mb: 2 }}>
                 <EnhancedTableToolbar />
                 <TableContainer>
@@ -205,12 +211,13 @@ export default function Guilds() {
                                             key={row.id}
                                         >
                                             <TableCell
-                                                component="th"
                                                 id={labelId}
                                                 scope="row"
                                                 padding="none"
                                                 align="left"
                                                 sx={{ paddingLeft: '16px', minWidth: '70px' }}
+                                                component={Link}
+                                                to={`/guild?id=${row.id}`}
                                             >
                                                 {row.id}
                                             </TableCell>
@@ -221,7 +228,9 @@ export default function Guilds() {
                                                     whiteSpace: 'nowrap',
                                                     textOverflow: 'ellipsis',
                                                     maxWidth: '200px',
-                                                }}>{row.name}</TableCell>
+                                                }}
+                                                component={Link}
+                                                to={`/guild?id=${row.id}`}>{row.name}</TableCell>
                                             </Tooltip>
                                             <TableCell align="center">
                                                 <Tooltip title={<><img src={getSmallerIcon(row.icon)} alt="Server icon"/></>} placement="top" arrow>

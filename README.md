@@ -9,6 +9,11 @@ A frontend web application that ties with the darvester-api application to provi
 git clone https://github.com/V3ntus/darvester-api-frontend; cd darvester-api-frontend
 ```
 ### 2. Run npm commands
+First:
+```
+npm i
+```
+then to deploy:
 ```
 npm run build
 npm install -g serve

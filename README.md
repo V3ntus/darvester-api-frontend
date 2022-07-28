@@ -26,4 +26,4 @@ npm start
 ```
 
 ## Demo:
-View a demo at [darvester.gladiusso.com](https://darvester.gladiusso.com)
+View a demo at [darvester.gladiusso.com](http://darvester.gladiusso.com)

@@ -27,6 +27,8 @@ import ImageWithFallback from './Image';
 import { getSmallerIcon, theme } from '../common';
 import debounce from 'lodash.debounce';
 
+import { HOST, PORT } from '../config';
+
 var JSONBig = require('json-bigint');
 
 export const Search = styled('div')(({ theme }) => ({
@@ -99,7 +101,7 @@ export function SearchAppBar() {
     const doSearch = (term) => {
         if (term === "" || term === undefined) {setOptions([]); return undefined};
         // setLoading(true);  // this not work
-        fetch(`http://localhost:8080/search/${term}?limit=50`).then(res => res.text()).then(res => {
+        fetch(`http://${HOST}:${PORT}/search/${term}?limit=50`).then(res => res.text()).then(res => {
                 res = JSONBig.parse(res);
                 res['users'].forEach(element => {
                     element['id'] = element['id'].toString();

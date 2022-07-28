@@ -21,6 +21,8 @@ import { getComparator, getSmallerIcon } from '../common';
 import CloseIcon from '@mui/icons-material/Close';
 import { Link } from 'react-router-dom';
 
+import { HOST, PORT } from '../config';
+
 var JSONBig = require('json-bigint');
 
 const columns = [
@@ -117,7 +119,7 @@ export default function Users() {
         setSnackbarMessage(`Loading ${username}'s guilds...`);
         setSnackbarOpen(true);
         for (let i = 0; i < guilds.length; i++) {
-            _promises.push(fetch("http://localhost:8080/guilds/" + guilds[i]).then(res => res.text()).then(data => {
+            _promises.push(fetch(`http://${HOST}:${PORT}/guilds/` + guilds[i]).then(res => res.text()).then(data => {
                 data = JSONBig.parse(data);
                 _to_ret.push({
                     id: data.id.toString(),
@@ -199,7 +201,7 @@ export default function Users() {
     // }
 
     useEffect(() => {
-        fetch(`http://localhost:8080/users`)
+        fetch(`http://${HOST}:${PORT}/users`)
             .then((res) => res.text())
             // .then((res) => {return JSON.parse(res.replace(/"id":(\d+)/g, '"id": "$1"').replace(/"id":(\d+),/g, '"id": "$1",'))}) // fix for Javascript's max integer size : bug: does not work for arrays
             .then((res) => {return JSONBig.parse(res);}) // sidorares' fix for bigint parsing - thank you so much

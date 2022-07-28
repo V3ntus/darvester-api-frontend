@@ -12,6 +12,8 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { useSearchParams, Link } from 'react-router-dom';
 import { theme, getSmallerIcon } from '../common';
 
+import { HOST, PORT } from '../config';
+
 var JSONBig = require('json-bigint');
 
 export default function Guild() {
@@ -24,7 +26,7 @@ export default function Guild() {
 
     React.useEffect(() => {
         let _promises = [];
-        _promises.push(fetch(`http://localhost:8080/guilds/${searchParams.get('id')}`).then((resp) => resp.text()).then((data) => {
+        _promises.push(fetch(`http://${HOST}:${PORT}/guilds/${searchParams.get('id')}`).then((resp) => resp.text()).then((data) => {
             data = JSONBig.parse(data);
             data['first_seen_string'] = new Date(data.first_seen * 1000).toLocaleDateString("en-US", {
                 month: "2-digit",
@@ -35,7 +37,7 @@ export default function Guild() {
             });
             setGuild(data);
         }));
-        _promises.push(fetch(`http://localhost:8080/guilds/${searchParams.get('id')}/members`).then((resp) => resp.text()).then(
+        _promises.push(fetch(`http://${HOST}:${PORT}/guilds/${searchParams.get('id')}/members`).then((resp) => resp.text()).then(
             (data) => {
                 data = JSONBig.parse(data);
                 setGuildMembers(data['members']);

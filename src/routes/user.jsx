@@ -15,6 +15,8 @@ import Tooltip from '@mui/material/Tooltip';
 import { useSearchParams, Link } from 'react-router-dom';
 import { theme, getSmallerIcon, parseConnectedAccount, capitalizeFirstLetter, secondsToHms } from '../common';
 
+import { HOST, PORT } from '../config';
+
 var JSONBig = require('json-bigint');
 
 export default function User() {
@@ -31,7 +33,7 @@ export default function User() {
         let _promises = [];
         let _tmp_user_guilds = [];
         let _tmp_user_connections = [];
-        fetch(`http://localhost:8080/users/${searchParams.get('id')}`).then((resp) => resp.text())
+        fetch(`http://${HOST}:${PORT}/users/${searchParams.get('id')}`).then((resp) => resp.text())
             .then((data) => {
                 data = JSONBig.parse(data);
                 data['first_seen_string'] = new Date(data.first_seen * 1000).toLocaleDateString("en-US", {
@@ -59,7 +61,7 @@ export default function User() {
                 setUser(data);
                 data.mutual_guilds?.guilds?.forEach(guildID => {
                     _promises.push(
-                        fetch(`http://localhost:8080/guilds/${guildID}`)
+                        fetch(`http://${HOST}:${PORT}/guilds/${guildID}`)
                             .then((data) => data.text())
                             .then((data) => {
                                 data = JSONBig.parse(data);

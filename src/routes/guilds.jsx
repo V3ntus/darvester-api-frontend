@@ -16,6 +16,8 @@ import { getComparator, getSmallerIcon } from '../common.js';
 
 import { Link } from 'react-router-dom';
 
+import { HOST, PORT } from '../config';
+
 var JSONBig = require('json-bigint');
 
 const columns = [
@@ -130,7 +132,7 @@ export default function Guilds() {
     }
 
     useEffect(() => {
-        fetch(`http://localhost:8080/guilds?limit=${rowsPerPage}&offset=${rowsPerPage * page}`)
+        fetch(`http://${HOST}:${PORT}/guilds?limit=${rowsPerPage}&offset=${rowsPerPage * page}`)
             .then(res => res.text())
             .then(
                 (result) => {

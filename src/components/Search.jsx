@@ -117,13 +117,6 @@ export function SearchAppBar() {
             });
         // setLoading(false);
     };
-
-    // If search is not open, clear options
-    React.useEffect(() => {
-      if (!searchOpen) {
-        setOptions([]);
-      }
-    }, [searchOpen])
   
     const toggleDrawer = (anchor, open) => (event) => {
       if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
@@ -223,6 +216,7 @@ export function SearchAppBar() {
                 onChange={debounce((e) => doSearch(e.target.value), 300)}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={() => setTimeout(() => setSearchOpen(false), 300)} // Delays closing of results before the link registers a click
+                autoComplete="off"
                 InputProps={{
                     endAdornment: (
                         <React.Fragment>

@@ -14,6 +14,8 @@ import { Paper, TableContainer, Toolbar, Tooltip, Typography } from '@mui/materi
 import { visuallyHidden } from '@mui/utils';
 import { getComparator, getSmallerIcon } from '../common.js';
 
+import { Link } from 'react-router-dom';
+
 var JSONBig = require('json-bigint');
 
 const columns = [
@@ -209,12 +211,13 @@ export default function Guilds() {
                                             key={row.id}
                                         >
                                             <TableCell
-                                                component="th"
                                                 id={labelId}
                                                 scope="row"
                                                 padding="none"
                                                 align="left"
                                                 sx={{ paddingLeft: '16px', minWidth: '70px' }}
+                                                component={Link}
+                                                to={`/guild?id=${row.id}`}
                                             >
                                                 {row.id}
                                             </TableCell>
@@ -225,7 +228,9 @@ export default function Guilds() {
                                                     whiteSpace: 'nowrap',
                                                     textOverflow: 'ellipsis',
                                                     maxWidth: '200px',
-                                                }}>{row.name}</TableCell>
+                                                }}
+                                                component={Link}
+                                                to={`/guild?id=${row.id}`}>{row.name}</TableCell>
                                             </Tooltip>
                                             <TableCell align="center">
                                                 <Tooltip title={<><img src={getSmallerIcon(row.icon)} alt="Server icon"/></>} placement="top" arrow>
